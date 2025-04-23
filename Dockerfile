@@ -1,12 +1,12 @@
 # Use the official uv Debian image as base
 FROM ghcr.io/astral-sh/uv:debian
 
-# Install Node.js and npm
+# Install Node.js, npm, and curl for healthcheck
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
+    && apt-get install -y nodejs curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -32,13 +32,13 @@ RUN npm ci
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN mkdir -p dist && npm run build
 
 # Set environment variables
 ENV NODE_ENV=production
 
 # Expose the application port
-EXPOSE 3000
+EXPOSE 12006
 
 # Run the application
-ENTRYPOINT ["node", "dist/index.js"] 
+ENTRYPOINT ["node", "dist/index.js"]

@@ -1,21 +1,26 @@
+version: '3.8'
+
 services:
   mcp-server:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "12006:12006"
     env_file:
       - .env.production.local
-    entrypoint: ["/bin/bash"]
-    command: ["-c", "uvx --version && echo 'uvx is working!' && tail -f /dev/null"]
+    # Use the proper entrypoint from the Dockerfile
+    # and override with the command to run the server with SSE transport
+    command: ["--transport", "sse", "--port", "12006"]
     healthcheck:
-      test: ["CMD", "ps", "aux", "|", "grep", "tail"]
+      test: ["CMD", "curl", "-f", "--head", "--max-time", "5", "http://127.0.0.1:12006/sse"]
       interval: 30s
       timeout: 10s
       retries: 3
     environment:
       - NODE_ENV=production
     restart: unless-stopped
-    # Add any additional environment variables or command arguments here
-    # command: --metamcp-api-key your-api-key --metamcp-api-base-url your-base-url
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/dist
